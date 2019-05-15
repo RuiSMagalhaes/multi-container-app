@@ -1,0 +1,22 @@
+sudo: required
+services:
+  -docker
+
+before_install:
+  - docker build -t ruismagalhaes/multi-container-app-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true ruismagalhaes/multi-container-app-test npm run test
+
+after_success:
+  - docker build -t ruismagalhaes/multi-container-app-client ./client
+  - docker build -t ruismagalhaes/multi-container-app-nginx ./nginx
+  - docker build -t ruismagalhaes/multi-container-app-server ./server
+  - docker build -t ruismagalhaes/multi-container-app-worker ./worker
+  #log in in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  #Take the images build and push them to docker hub
+  - docker push ruismagalhaes/multi-container-app-client
+  - docker push ruismagalhaes/multi-container-app-nginx
+  - docker push ruismagalhaes/multi-container-app-server
+  - docker push ruismagalhaes/multi-container-app-worker
